@@ -35,6 +35,22 @@ export class DroneSimulatorV2 {
   private gridHelper: THREE.GridHelper;
   private axesHelper: THREE.AxesHelper;
 
+  // 鼠标交互相关
+  private mouseDown = false;
+  private mouseX = 0;
+  private mouseY = 0;
+  private targetRotationX = 0;
+  private targetRotationY = 0;
+  private rotationX = 0;
+  private rotationY = 0;
+  private distance = 80;
+  private targetDistance = 80;
+  private panX = 0;
+  private panY = 0;
+  private targetPanX = 0;
+  private targetPanY = 0;
+  private cameraTarget = new THREE.Vector3(0, 0, 0);
+
   constructor(canvas: HTMLCanvasElement) {
     // 初始化场景
     this.scene = new THREE.Scene();
@@ -84,11 +100,74 @@ export class DroneSimulatorV2 {
     this.axesHelper = new THREE.AxesHelper(50);
     this.scene.add(this.axesHelper);
 
+    // 设置鼠标事件
+    this.setupMouseControls(canvas);
+
     // 启动渲染循环
     this.animate();
 
     // 处理窗口大小变化
     window.addEventListener("resize", () => this.onWindowResize());
+  }
+
+  /**
+   * 设置鼠标控制
+   */
+  private setupMouseControls(canvas: HTMLCanvasElement): void {
+    // 鼠标按下
+    canvas.addEventListener("mousedown", (e: MouseEvent) => {
+      this.mouseDown = true;
+      this.mouseX = e.clientX;
+      this.mouseY = e.clientY;
+    });
+
+    // 鼠标移动
+    canvas.addEventListener("mousemove", (e: MouseEvent) => {
+      if (this.mouseDown && this.viewMode === "free") {
+        const deltaX = e.clientX - this.mouseX;
+        const deltaY = e.clientY - this.mouseY;
+
+        // 根据鼠标按钮类型处理不同操作
+        if (e.buttons === 1) {
+          // 左键：旋转
+          this.targetRotationY += deltaX * 0.005;
+          this.targetRotationX += deltaY * 0.005;
+
+          // 限制 X 轴旋转范围
+          this.targetRotationX = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, this.targetRotationX));
+        } else if (e.buttons === 4) {
+          // 中键：平移
+          this.targetPanX -= deltaX * 0.1;
+          this.targetPanY += deltaY * 0.1;
+        }
+
+        this.mouseX = e.clientX;
+        this.mouseY = e.clientY;
+      }
+    });
+
+    // 鼠标抬起
+    canvas.addEventListener("mouseup", () => {
+      this.mouseDown = false;
+    });
+
+    // 鼠标离开
+    canvas.addEventListener("mouseleave", () => {
+      this.mouseDown = false;
+    });
+
+    // 滚轮缩放
+    canvas.addEventListener("wheel", (e: WheelEvent) => {
+      e.preventDefault();
+      const zoomSpeed = 2;
+      if (e.deltaY > 0) {
+        this.targetDistance *= 1 + zoomSpeed * 0.01;
+      } else {
+        this.targetDistance /= 1 + zoomSpeed * 0.01;
+      }
+      // 限制缩放范围
+      this.targetDistance = Math.max(10, Math.min(200, this.targetDistance));
+    });
   }
 
   /**
@@ -98,23 +177,22 @@ export class DroneSimulatorV2 {
     const group = new THREE.Group();
 
     // 机身
-    const bodyGeometry = new THREE.BoxGeometry(0.4, 0.2, 0.4);
+    const bodyGeometry = new THREE.BoxGeometry(2, 1, 3);
     const bodyMaterial = new THREE.MeshPhongMaterial({ color: 0xff007f });
     const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
     body.castShadow = true;
-    body.receiveShadow = true;
     group.add(body);
 
     // 四个螺旋桨
     const propPositions = [
-      [0.2, 0.1, 0.2],
-      [-0.2, 0.1, 0.2],
-      [0.2, 0.1, -0.2],
-      [-0.2, 0.1, -0.2],
+      [-1.5, 0.5, -1.5],
+      [1.5, 0.5, -1.5],
+      [-1.5, 0.5, 1.5],
+      [1.5, 0.5, 1.5],
     ];
 
     for (const pos of propPositions) {
-      const propGeometry = new THREE.CylinderGeometry(0.15, 0.15, 0.05, 8);
+      const propGeometry = new THREE.CylinderGeometry(0.8, 0.8, 0.1, 8);
       const propMaterial = new THREE.MeshPhongMaterial({ color: 0x00ffff });
       const prop = new THREE.Mesh(propGeometry, propMaterial);
       prop.position.set(pos[0], pos[1], pos[2]);
@@ -123,10 +201,10 @@ export class DroneSimulatorV2 {
     }
 
     // 天线
-    const antennaGeometry = new THREE.CylinderGeometry(0.02, 0.02, 0.3, 8);
-    const antennaMaterial = new THREE.MeshPhongMaterial({ color: 0xff007f });
+    const antennaGeometry = new THREE.CylinderGeometry(0.1, 0.1, 2, 8);
+    const antennaMaterial = new THREE.MeshPhongMaterial({ color: 0x00ff00 });
     const antenna = new THREE.Mesh(antennaGeometry, antennaMaterial);
-    antenna.position.y = 0.15;
+    antenna.position.set(0, 1.5, 0);
     antenna.castShadow = true;
     group.add(antenna);
 
@@ -138,12 +216,12 @@ export class DroneSimulatorV2 {
    */
   private setupLights(): void {
     // 环境光
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
     this.scene.add(ambientLight);
 
     // 方向光
     const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-    directionalLight.position.set(100, 100, 50);
+    directionalLight.position.set(50, 100, 50);
     directionalLight.castShadow = true;
     directionalLight.shadow.mapSize.width = 2048;
     directionalLight.shadow.mapSize.height = 2048;
@@ -153,28 +231,25 @@ export class DroneSimulatorV2 {
     directionalLight.shadow.camera.bottom = -200;
     this.scene.add(directionalLight);
 
-    // 点光源（霓虹效果）
-    const pointLight = new THREE.PointLight(0xff007f, 0.5);
+    // 点光源
+    const pointLight = new THREE.PointLight(0x00ffff, 0.5, 100);
     pointLight.position.set(0, 50, 0);
     this.scene.add(pointLight);
   }
 
   /**
-   * 设置环境（地形、建筑物、树木等）
+   * 设置环境
    */
   private setupEnvironment(): void {
     // 地面
-    const groundGeometry = new THREE.PlaneGeometry(300, 300);
-    const groundMaterial = new THREE.MeshPhongMaterial({
-      color: 0x1a1a2e,
-      side: THREE.DoubleSide,
-    });
+    const groundGeometry = new THREE.PlaneGeometry(200, 200);
+    const groundMaterial = new THREE.MeshPhongMaterial({ color: 0x1a1a2e });
     const ground = new THREE.Mesh(groundGeometry, groundMaterial);
     ground.rotation.x = -Math.PI / 2;
     ground.receiveShadow = true;
     this.scene.add(ground);
 
-    // 添加一些建筑物作为障碍物
+    // 添加建筑物
     this.addBuildings();
 
     // 添加树木
@@ -185,16 +260,16 @@ export class DroneSimulatorV2 {
    * 添加建筑物
    */
   private addBuildings(): void {
-    const buildingPositions = [
-      { x: 30, z: 30, width: 20, height: 40, depth: 20 },
-      { x: -40, z: 20, width: 25, height: 35, depth: 25 },
-      { x: 0, z: -50, width: 30, height: 50, depth: 20 },
-      { x: -60, z: -30, width: 20, height: 30, depth: 30 },
+    const buildings = [
+      { x: -50, z: -50, width: 20, depth: 20, height: 30 },
+      { x: 50, z: -50, width: 25, depth: 15, height: 40 },
+      { x: -50, z: 50, width: 15, depth: 25, height: 35 },
+      { x: 50, z: 50, width: 20, depth: 20, height: 25 },
     ];
 
-    for (const building of buildingPositions) {
+    for (const building of buildings) {
       const geometry = new THREE.BoxGeometry(building.width, building.height, building.depth);
-      const material = new THREE.MeshPhongMaterial({ color: 0x333366 });
+      const material = new THREE.MeshPhongMaterial({ color: 0x444466 });
       const mesh = new THREE.Mesh(geometry, material);
       mesh.position.set(building.x, building.height / 2, building.z);
       mesh.castShadow = true;
@@ -336,7 +411,9 @@ export class DroneSimulatorV2 {
    */
   setViewMode(mode: ViewMode): void {
     this.viewMode = mode;
-    this.updateCameraPosition();
+    if (mode !== "free") {
+      this.updateCameraPosition();
+    }
   }
 
   /**
@@ -473,13 +550,39 @@ export class DroneSimulatorV2 {
   }
 
   /**
+   * 更新自由视角相机
+   */
+  private updateFreeCamera(): void {
+    // 平滑过渡旋转
+    this.rotationX += (this.targetRotationX - this.rotationX) * 0.1;
+    this.rotationY += (this.targetRotationY - this.rotationY) * 0.1;
+
+    // 平滑过渡距离
+    this.distance += (this.targetDistance - this.distance) * 0.1;
+
+    // 平滑过渡平移
+    this.panX += (this.targetPanX - this.panX) * 0.1;
+    this.panY += (this.targetPanY - this.panY) * 0.1;
+
+    // 计算相机位置
+    const x = Math.sin(this.rotationY) * Math.cos(this.rotationX) * this.distance + this.cameraTarget.x + this.panX;
+    const y = Math.sin(this.rotationX) * this.distance + this.cameraTarget.y + this.panY;
+    const z = Math.cos(this.rotationY) * Math.cos(this.rotationX) * this.distance + this.cameraTarget.z;
+
+    this.camera.position.set(x, y, z);
+    this.camera.lookAt(this.cameraTarget);
+  }
+
+  /**
    * 渲染循环
    */
   private animate = (): void => {
     requestAnimationFrame(this.animate);
 
-    // 更新相机位置（跟随模式）
-    if (this.viewMode === "follow") {
+    // 更新相机
+    if (this.viewMode === "free") {
+      this.updateFreeCamera();
+    } else if (this.viewMode === "follow") {
       this.updateCameraPosition();
     }
 
