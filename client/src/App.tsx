@@ -7,6 +7,7 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
 import Navigation from "./components/Navigation";
 import Simulator from "./pages/Simulator";
+import SimulatorV2 from "./pages/SimulatorV2";
 import AlgorithmConfig from "./pages/AlgorithmConfig";
 
 function Router() {
@@ -15,6 +16,7 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/config" component={AlgorithmConfig} />
       <Route path="/simulator" component={Simulator} />
+      <Route path="/simulator-v2" component={SimulatorV2} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

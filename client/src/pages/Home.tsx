@@ -1,6 +1,7 @@
-import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { getLoginUrl } from "@/const";
+import { useAuth } from "@/_core/hooks/useAuth";
+import { Link } from "wouter";
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import {
@@ -152,11 +153,11 @@ export default function Home() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
             {isAuthenticated ? (
               <Button
-                onClick={() => (window.location.href = "/simulator")}
+                onClick={() => (window.location.href = "/simulator-v2")}
                 size="lg"
                 className="bg-neon-pink hover:bg-neon-pink/80 text-background font-bold text-lg px-8 neon-border group"
               >
-                进入仿真
+                进入完整仿真
                 <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Button>
             ) : (
@@ -188,21 +189,43 @@ export default function Home() {
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* 完整仿真卡片 */}
+            <Link
+              href="/simulator-v2"
+              className="tech-frame p-6 hover:border-neon-pink border border-neon-pink/30 transition-all duration-300 group cursor-pointer"
+            >
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0">
+                  <div className="flex items-center justify-center h-12 w-12 rounded border border-neon-pink text-neon-pink group-hover:bg-neon-pink/10 transition-colors">
+                    <Box className="w-6 h-6" />
+                  </div>
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold text-neon-pink mb-2">
+                    完整仿真
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    真实 3D 环境 + A*/RRT 避障
+                  </p>
+                </div>
+              </div>
+            </Link>
+
             {features.map((feature, index) => {
               const Icon = feature.icon;
               return (
                 <div
                   key={index}
-                  className="tech-frame p-6 hover:neon-border-cyan transition-all duration-300 group cursor-pointer"
+                  className="tech-frame p-6 hover:border-neon-cyan border border-neon-cyan/30 transition-all duration-300 group cursor-pointer"
                 >
                   <div className="flex items-start gap-4">
                     <div className="flex-shrink-0">
                       <div className="flex items-center justify-center h-12 w-12 rounded border border-neon-cyan text-neon-cyan group-hover:bg-neon-cyan/10 transition-colors">
-                        <Icon className="h-6 w-6" />
+                        <Icon className="w-6 h-6" />
                       </div>
                     </div>
                     <div className="flex-1">
-                      <h3 className="text-lg font-bold text-foreground mb-2">
+                      <h3 className="text-lg font-semibold text-neon-cyan mb-2">
                         {feature.title}
                       </h3>
                       <p className="text-sm text-muted-foreground">
@@ -218,32 +241,36 @@ export default function Home() {
       </section>
 
       {/* 技术栈 Section */}
-      <section className="relative container mx-auto px-4 py-20 border-t border-border">
-        <div className="max-w-4xl mx-auto text-center space-y-8">
-          <h2 className="text-4xl font-bold neon-glow">技术架构</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {["Gazebo", "ROS", "PX4", "Three.js"].map((tech) => (
+      <section className="relative container mx-auto px-4 py-20">
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-4xl font-bold text-center mb-12 neon-glow">
+            技术栈
+          </h2>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+            {[
+              { name: "Gazebo", icon: "🏗️" },
+              { name: "ROS", icon: "🤖" },
+              { name: "PX4", icon: "✈️" },
+              { name: "Three.js", icon: "🎨" },
+              { name: "React 19", icon: "⚛️" },
+              { name: "TypeScript", icon: "📘" },
+              { name: "Tailwind", icon: "🎨" },
+              { name: "tRPC", icon: "🔗" },
+            ].map((tech, index) => (
               <div
-                key={tech}
-                className="tech-frame p-4 border border-border hover:neon-border transition-all"
+                key={index}
+                className="tech-frame p-4 border border-neon-cyan/20 hover:border-neon-cyan transition-all"
               >
-                <p className="font-mono text-sm font-bold text-neon-cyan">
-                  {tech}
+                <div className="text-3xl mb-2">{tech.icon}</div>
+                <p className="text-sm font-semibold text-neon-cyan">
+                  {tech.name}
                 </p>
               </div>
             ))}
           </div>
         </div>
       </section>
-
-      {/* Footer */}
-      <footer className="relative border-t border-border bg-card/30 mt-20">
-        <div className="container mx-auto px-4 py-8 text-center text-sm text-muted-foreground">
-          <p>
-            © 2024 PX4 无人机仿真平台 | 采用赛博朋克美学设计
-          </p>
-        </div>
-      </footer>
     </div>
   );
 }
