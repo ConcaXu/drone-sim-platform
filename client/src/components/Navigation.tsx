@@ -19,28 +19,28 @@ export default function Navigation() {
     <nav className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
       <div className="container flex items-center justify-between h-16">
         {/* Logo */}
-        <Link href="/">
-          <a className="flex items-center gap-2 group hover:opacity-80 transition-opacity">
-            <div className="relative">
-              <Zap className="w-6 h-6 text-neon-pink neon-glow" />
-              <div className="absolute inset-0 animate-pulse">
-                <Zap className="w-6 h-6 text-neon-pink opacity-50" />
-              </div>
+        <Link href="/" className="flex items-center gap-2 group hover:opacity-80 transition-opacity">
+          <div className="relative">
+            <Zap className="w-6 h-6 text-neon-pink neon-glow" />
+            <div className="absolute inset-0 animate-pulse">
+              <Zap className="w-6 h-6 text-neon-pink opacity-50" />
             </div>
-            <span className="text-lg font-bold neon-glow hidden sm:inline">
-              DRONE SIM
-            </span>
-          </a>
+          </div>
+          <span className="text-lg font-bold neon-glow hidden sm:inline">
+            DRONE SIM
+          </span>
         </Link>
 
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center gap-8">
           {navItems.map((item) => (
-            <Link key={item.href} href={item.href}>
-              <a className="text-sm font-medium text-foreground hover:text-neon-cyan transition-colors relative group">
-                {item.label}
-                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-neon-cyan group-hover:w-full transition-all duration-300" />
-              </a>
+            <Link
+              key={item.href}
+              href={item.href}
+              className="text-sm font-medium text-foreground hover:text-neon-cyan transition-colors relative group"
+            >
+              {item.label}
+              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-neon-cyan group-hover:w-full transition-all duration-300" />
             </Link>
           ))}
         </div>
@@ -90,13 +90,13 @@ export default function Navigation() {
         <div className="md:hidden border-t border-border bg-card/80 backdrop-blur-sm">
           <div className="container py-4 space-y-3">
             {navItems.map((item) => (
-              <Link key={item.href} href={item.href}>
-                <a
-                  className="block px-4 py-2 text-sm font-medium text-foreground hover:text-neon-cyan hover:bg-card rounded transition-colors"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  {item.label}
-                </a>
+              <Link
+                key={item.href}
+                href={item.href}
+                className="block px-4 py-2 text-sm font-medium text-foreground hover:text-neon-cyan hover:bg-card rounded transition-colors"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                {item.label}
               </Link>
             ))}
           </div>
